@@ -2,7 +2,8 @@ import os
 import subprocess
 import shutil
 
-BINARY_PATH = "./target/debug/gitkeep"
+# Default to Rust release binary, but allow override via env var
+BINARY_PATH = os.getenv("GITKEEP_BIN", "./target/release/gitkeep")
 TEST_DIR = "test_env"
 
 def setup():
