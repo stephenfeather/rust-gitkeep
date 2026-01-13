@@ -30,7 +30,7 @@ jobs:
             artifact_suffix: "-windows.exe"
             exe_suffix: ".exe"
             # Use cl.exe (MSVC) for Windows
-            cpp_cmd: "cl /EHsc /O2 src\cpp\main.cpp /Fe:gitkeep_cpp.exe"
+            cpp_cmd: "cl /EHsc /O2 src/cpp/main.cpp /Fe:gitkeep_cpp.exe"
 
     steps:
     - uses: actions/checkout@v4
