@@ -77,7 +77,6 @@ fn process_single(path: &Path, content: &str, let_go: bool, empty: bool) {
             }
         } else {
             // If not recursive, maybe warn? But usually silent if already gone is fine or "not found".
-            // Prompt doesn't specify behavior if file missing on delete. I'll stick to silent or simple log.
             // println!("File not found: {}", file_path.display());
         }
     } else {
