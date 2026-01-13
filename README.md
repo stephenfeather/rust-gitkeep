@@ -1,6 +1,8 @@
 # gitkeep
 
 A simple, cross-platform CLI tool to manage `.gitkeep` files in your project directories.
+The .gitkeep files are a __hack__ used to allow the creation of 'empty' directories in a git repo.
+This project roughly mirrors the python implementation, [py-keep](https://github.com/mig82/py-gitkeep), by mig82. 
 
 This project offers two implementations of the same tool:
 1. **Rust**: The primary implementation. Prioritizes safety, cross-platform ease (via Cargo), and robust argument parsing.
