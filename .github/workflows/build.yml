@@ -1,0 +1,89 @@
+name: Build Binaries
+
+on:
+  push:
+    branches: [ "main" ]
+    tags:
+      - 'v*'
+  pull_request:
+    branches: [ "main" ]
+  workflow_dispatch:
+
+jobs:
+  build:
+    name: Build on ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        include:
+          - os: ubuntu-latest
+            artifact_suffix: "-linux"
+            exe_suffix: ""
+            cpp_cmd: "g++ -std=c++17 -O3 src/cpp/main.cpp -o gitkeep_cpp"
+            
+          - os: macos-latest
+            artifact_suffix: "-macos"
+            exe_suffix: ""
+            cpp_cmd: "clang++ -std=c++17 -O3 src/cpp/main.cpp -o gitkeep_cpp"
+            
+          - os: windows-latest
+            artifact_suffix: "-windows.exe"
+            exe_suffix: ".exe"
+            # Use cl.exe (MSVC) for Windows
+            cpp_cmd: "cl /EHsc /O2 src\cpp\main.cpp /Fe:gitkeep_cpp.exe"
+
+    steps:
+    - uses: actions/checkout@v4
+
+    # --- RUST BUILD ---
+    - name: Set up Rust
+      uses: dtolnay/rust-toolchain@stable
+    
+    - name: Build Rust (Release)
+      run: cargo build --release --verbose
+
+    - name: Rename Rust Binary
+      shell: bash
+      run: |
+        cp target/release/gitkeep${{ matrix.exe_suffix }} gitkeep-rust${{ matrix.artifact_suffix }}
+
+    # --- C++ BUILD ---
+    - name: Setup MSVC (Windows)
+      if: runner.os == 'Windows'
+      uses: ilammy/msvc-dev-cmd@v1
+
+    - name: Build C++
+      shell: bash
+      run: ${{ matrix.cpp_cmd }}
+
+    - name: Rename C++ Binary
+      shell: bash
+      run: |
+        # On Windows with cl.exe, the output is already set by /Fe, but for consistency in unix:
+        if [ "${{ runner.os }}" == "Windows" ]; then
+             mv gitkeep_cpp.exe gitkeep-cpp${{ matrix.artifact_suffix }}
+        else
+             mv gitkeep_cpp gitkeep-cpp${{ matrix.artifact_suffix }}
+        fi
+
+    # --- UPLOAD ARTIFACTS ---
+    - name: Upload Rust Binary
+      uses: actions/upload-artifact@v4
+      with:
+        name: gitkeep-rust${{ matrix.artifact_suffix }}
+        path: gitkeep-rust${{ matrix.artifact_suffix }}
+
+    - name: Upload C++ Binary
+      uses: actions/upload-artifact@v4
+      with:
+        name: gitkeep-cpp${{ matrix.artifact_suffix }}
+        path: gitkeep-cpp${{ matrix.artifact_suffix }}
+
+    # --- RELEASE UPLOAD ---
+    - name: Upload to Release
+      if: startsWith(github.ref, 'refs/tags/')
+      uses: softprops/action-gh-release@v1
+      with:
+        files: |
+          gitkeep-rust${{ matrix.artifact_suffix }}
+          gitkeep-cpp${{ matrix.artifact_suffix }}
